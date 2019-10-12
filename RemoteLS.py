@@ -6,7 +6,10 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-
+import sys
+import os
+import threading
+from SocketService import SocketService
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
@@ -86,14 +89,34 @@ class Ui_MainWindow(object):
         self.menuHelp.addAction(self.actionEsci)
         self.menubar.addAction(self.menuHelp.menuAction())
 
+        self.tray_icon = QtWidgets.QSystemTrayIcon(MainWindow)
+        self.tray_icon.setIcon(QtGui.QIcon("myicon.ico"))
+
+        self.show_action = QtWidgets.QAction("Mostra Applicazione",MainWindow)
+        self.quit_action = QtWidgets.QAction("Esci", MainWindow)
+        self.hide_action = QtWidgets.QAction("Minimizza Nella Tray Icon", MainWindow)
+
+        self.show_action.triggered.connect(MainWindow.show)
+        self.hide_action.triggered.connect(MainWindow.hide)
+        self.quit_action.triggered.connect(self.killshellpython)
+
+        self.tray_menu = QtWidgets.QMenu()
+        self.tray_menu.addAction(self.show_action)
+        self.tray_menu.addAction(self.hide_action)
+        self.tray_menu.addAction(self.quit_action)
+
+        self.tray_icon.setContextMenu(self.tray_menu)
+        self.tray_icon.show()
+
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label.setText(_translate("MainWindow", "        Serivizio per recezione Comando remoto per Reti LAN  Attiva"))
-        self.label_2.setText(_translate("MainWindow", "        L\'Indirizzo IP del Computer in uso e\'  >> :"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "RemoteLocalShutdown Service..."))
+        self.label.setText(_translate("MainWindow", " Serivizio per recezione Comando remoto per Reti LAN  Attiva"))
+        self.label_2.setText(_translate("MainWindow", " L'indirizzi IP del Computer  '"  + str(serversocket.namehost) + 
+                                                                " ' è :    " + str(serversocket.host)))
         self.pushButton.setText(_translate("MainWindow", "Riduci a Icona"))
         self.pushButton_2.setText(_translate("MainWindow", "Opzioni"))
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))
@@ -104,3 +127,27 @@ class Ui_MainWindow(object):
         self.actionPython_Version.setText(_translate("MainWindow", "Python Version"))
         self.actionPyQT_Version.setText(_translate("MainWindow", "PyQT Version"))
         self.actionLicense.setText(_translate("MainWindow", "License"))
+
+    def startServerSocket(self):
+        self.t1 = threading.Thread(target=serversocket.startsocket)
+        self.t1.start()
+
+    def killshellpython(self):
+        ### Provvisorio
+        os.system('taskkill /f /im pyw.exe')
+
+
+
+if __name__ == '__main__':
+    serversocket = SocketService()
+    APP = QtWidgets.QApplication(sys.argv)
+    MainWindows = QtWidgets.QMainWindow()
+    Window = Ui_MainWindow()
+    Window.setupUi(MainWindows)
+    APP.setWindowIcon(QtGui.QIcon('myicon.ico'))
+    Window.startServerSocket()
+    
+    MainWindows.show()
+    sys.exit(APP.exec_())
+    Window.t1._stop()
+    serversocket.socketclose()
