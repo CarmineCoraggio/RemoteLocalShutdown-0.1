@@ -133,7 +133,7 @@ class Ui_MainWindow(object):
 
     def killshellpython(self):
         ### Provvisorio
-        os.system('taskkill /f /im py.exe')
+        os.system('taskkill /f /im pyw.exe')
 
     
         
@@ -161,6 +161,7 @@ class Window(QtWidgets.QMainWindow):
 if __name__ == "__main__":
     serversocket = SocketService()
     app = QtWidgets.QApplication(sys.argv)
+    app.setWindowIcon(QtGui.QIcon('myicon.ico'))
 
     thiswindow = Window()
     thiswindow.setWindowIcon(QtGui.QIcon('myicon.ico'))
